@@ -1,0 +1,17 @@
+services:
+  backend:
+    build: ../backend
+    environment:
+      DJANGO_DB_PATH: /data/db.sqlite3
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - django-data:/data
+
+  frontend:
+    build: ../frontend
+    ports:
+      - "127.0.0.1:8080:80"
+
+volumes:
+  django-data:
