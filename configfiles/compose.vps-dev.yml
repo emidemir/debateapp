@@ -1,0 +1,23 @@
+services:
+  backend:
+    image: "debateapp-backend:${DEBATEAPP_TAG:-manual}"
+    build: ../backend
+    environment:
+      DJANGO_DB_PATH: /data/db.sqlite3
+    volumes:
+      - django-data:/data
+
+  frontend:
+    image: "debateapp-frontend:${DEBATEAPP_TAG:-manual}"
+    build: ../frontend
+    networks:
+      shared_network:
+        aliases:
+          - debateapp-dev-web
+
+volumes:
+  django-data:
+
+networks:
+  shared_network:
+    external: true
