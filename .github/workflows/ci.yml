@@ -12,6 +12,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Check out code
@@ -30,3 +33,18 @@ jobs:
           docker build -t "debateapp-frontend:$GITHUB_SHA" ./frontend
           docker run --rm --entrypoint nginx \
             "debateapp-frontend:$GITHUB_SHA" -t
+      
+      - name: Publish dev images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io \
+            --username "$GITHUB_ACTOR" --password-stdin
+
+          for component in backend frontend; do
+            local_image="debateapp-$component:$GITHUB_SHA"
+            registry_image="ghcr.io/emidemir/debateapp-$component:$GITHUB_SHA"
+            docker tag "$local_image" "$registry_image"
+            docker push "$registry_image"
+          done
