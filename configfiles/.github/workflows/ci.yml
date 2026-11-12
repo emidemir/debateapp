@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and check Django
+        run: |
+          docker build -t "debateapp-backend:$GITHUB_SHA" ./backend
+          docker run --rm --entrypoint python \
+            "debateapp-backend:$GITHUB_SHA" manage.py check
+
+      - name: Build React and check Nginx
+        run: |
+          docker build -t "debateapp-frontend:$GITHUB_SHA" ./frontend
+          docker run --rm --entrypoint nginx \
+            "debateapp-frontend:$GITHUB_SHA" -t
